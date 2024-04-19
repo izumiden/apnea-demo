@@ -1,0 +1,37 @@
+# -*- coding: utf-8 -*-
+version: 1
+
+formatters:
+  simple:
+    format: '%(asctime)s,%(name)s,%(levelname).3s,%(message)s'
+  # file:
+  #   format: '%(asctime)s,%(name)s,%(levelname).3s,%(message)s'
+  #   # style: '{'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: simple
+    stream: ext://sys.stdout
+  # file:
+  #   class: logging.handlers.TimedRotatingFileHandler
+  #   level: DEBUG
+  #   formatter: simple
+  #   filename: /tmp/demo/log/demo.log
+  #   when: MIDNIGHT
+  #   backupCount: 7
+  #   encoding: utf-8
+
+loggers:
+  root:
+    level: INFO
+    handlers: console
+    # handlers: [console, file]
+    propagate: no
+
+  __main__:
+    level: DEBUG
+
+  apnea.data:
+    level: DEBUG
