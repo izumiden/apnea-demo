@@ -154,6 +154,7 @@ def _run(motorController: MotorController, apneadata: ApneaData):
                         motorController.rotate_backwards(abs(rpm))
                 else:
                     motorController.rotate(rpm)
+                logger.debug(f"{time_current:.3f}, {time_sampling:.3f}, {time_current-time_sampling:.3f}, {rpm:.3f}")
                 time_sampling += sample_interval
             else:
                 if _g_reference_point_event.is_set():
@@ -163,8 +164,8 @@ def _run(motorController: MotorController, apneadata: ApneaData):
             if time_logging <= time_current:
                 prosess_time = time.time() - time_current
                 logger.info(
-                    f" xactual: {motorController.tmc5240.xactual:8,}"
-                    f" vactual: {motorController.tmc5240.vactual:8,}/{motorController.tmc5240.vmax:8,}"
+                    f" x: {motorController.tmc5240.xactual:8,}"
+                    f" v/max: {motorController.tmc5240.vactual:8,}/{motorController.tmc5240.vmax:8,}"
                     f" rpm/max: {motorController.tmc5240.vactual_rpm :8,.3f} / {motorController.tmc5240.vmax_rpm:8,.3f}"
                     f" mode: {motorController.rampmode}"
                     f" elapsed: {time_current - time_start:.3f}"

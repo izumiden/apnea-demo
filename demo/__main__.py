@@ -24,10 +24,10 @@ try:
                 yaml_conf = yaml.safe_load(f)
                 logging.config.dictConfig(yaml_conf)
         except FileNotFoundError as e:
-            logging.basicConfig(level="DEBUG")
+            logging.basicConfig(level="WARNING")
             logging.error(f"log config FileNotFoundError.: {e}")
         except (yaml.parser.ParserError, KeyError, ValueError) as e:
-            logging.basicConfig(level="DEBUG")
+            logging.basicConfig(level="WARNING")
             logging.error(f"log config yaml parse error: {e}")
 
     # create logger

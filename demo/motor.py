@@ -170,98 +170,6 @@ class MotorController:
     def is_running(self):
         return self._tmc5240.vactual != 0
 
-    # def is_active(self):
-    #     return self._thread is not None and self._thread.is_alive()
-
-    # def start(self, sample_interval, rpms: list[float]):
-    #     if not self.is_poweron():
-    #         raise MotorNotEnabledError()
-    #     if self.is_active() or self.is_running():
-    #         raise MotorRunningError()
-
-    #     self._thread = Thread(target=self.run, args=(sample_interval, rpms))
-    #     self._thread.start()
-    #     return self
-
-    # def stop(self):
-    #     self._stop_flag = True
-    #     return self
-
-    # def join(self):
-    #     if self._thread is not None:
-    #         self._thread.join()
-    #     return self
-
-    # def run(self, sample_interval, rpms: list[float]):
-    #     logger.info("Motor started.")
-    #     try:
-    #         self._stop_flag = False
-    #         self._tmc5240.vmax_rpm = 0  # 最大速度を初期化
-    #         logging_interval = 1.0  # ロギング間隔（秒）
-
-    #         iter_rpms = iter(rpms)
-
-    #         time_start = time.time()  # 開始時刻を取得
-    #         time_sampling = time_start + sample_interval  # サンプリング時間を初期化
-
-    #         time_logging = time_start + logging_interval  # ロギング時間を初期化
-
-    #         self._tmc5240.rampmode = rampmode = TMC5240.RAMPMODE_VELOCITY_POSITIVE
-    #         # モータードライバーを印加
-    #         if self.is_poweron():
-    #             self.poweron()
-
-    #         while not self._stop_flag:
-    #             time.sleep(0.001)
-    #             time_current = time.time()
-    #             if time_sampling <= time_current:
-    #                 rpm = 0
-    #                 try:
-    #                     rpm = next(iter_rpms)
-    #                 except StopIteration:
-    #                     iter_rpms = iter(rpms)
-    #                     rpm = next(iter_rpms)
-
-    #                 if rpm < 0:
-    #                     rpm = abs(rpm)
-    #                     if rampmode != TMC5240.RAMPMODE_VELOCITY_NEGATIVE:
-    #                         self._tmc5240.vmax_rpm = 0
-    #                         self._tmc5240.rampmode = rampmode = (
-    #                             TMC5240.RAMPMODE_VELOCITY_NEGATIVE
-    #                         )
-    #                 else:
-    #                     if rampmode != TMC5240.RAMPMODE_VELOCITY_POSITIVE:
-    #                         self._tmc5240.vmax_rpm = 0
-    #                         self._tmc5240.rampmode = rampmode = (
-    #                             TMC5240.RAMPMODE_VELOCITY_POSITIVE
-    #                         )
-    #                 self._tmc5240.vmax_rpm = rpm
-    #                 time_sampling += sample_interval
-
-    #             if time_logging <= time_current:
-    #                 logger.info(
-    #                     f" xactual: {self._tmc5240.xactual:8,}"
-    #                     f" vactual: {self._tmc5240.vactual:8,}/{self._tmc5240.vmax:8,}"
-    #                     f" rpm/max: {self._tmc5240.vactual_rpm :8,.3f}/ {self._tmc5240.vmax_rpm:8,.3f}"
-    #                     f" mode: {self._tmc5240.rampmode}"
-    #                     f" elapsed: {time_current - time_start:.3f}"
-    #                 )
-    #                 time_logging += logging_interval
-    #     finally:
-    #         self._tmc5240.vmax_rpm = 0
-    #         self._tmc5240.rampmode = rampmode = TMC5240.RAMPMODE_VELOCITY_POSITIVE
-    #         while self.is_running():
-    #             time_current = time.time()
-    #             logger.info(
-    #                 f" xactual: {self._tmc5240.xactual:8}"
-    #                 f" vactual: {self._tmc5240.vactual:8}/{self._tmc5240.vmax:8}"
-    #                 f" vmax_rpm: {self._tmc5240.vactual_rpm :8.3f}/{self._tmc5240.vmax_rpm:8.3f}"
-    #                 f" mode: {self._tmc5240.rampmode}"
-    #                 f" elapsed: {time_current - time_start:.3f}"
-    #             )
-    #             time.sleep(0.5)
-    #         logger.info("Motor stoped.")
-
 
 def calculate_motor_rpm(
     sample_interval_secondes: float,
@@ -284,20 +192,22 @@ def calculate_motor_rpm(
     logger.info(f"sample_interval_secondes:{sample_interval_secondes:.3f}.")
     logger.info(f"microstep_ratio:{microstep_ratio:.3f}.")
     logger.info(f"steps_per_rev:{steps_per_rev:.3f}.")
+    
     for movement in movements:
         val = 0
         if 1 < len(movement):
             val = movement[1]
-        speed_steps_per_second = val * microstep_ratio / sample_interval_secondes
-        # speed_steps_per_second = val * microstep_ratio
-        # speed_steps_per_second /= sample_interval
+        # ステップ/サンプル間隔（秒）
+        speed_steps_per_sample_interval = val * microstep_ratio
         # ステップ/秒
+        speed_steps_per_second = speed_steps_per_sample_interval / sample_interval_secondes
+        
         rpm = (speed_steps_per_second * 60) / steps_per_rev
         rpm = round(rpm, 2)
         rpms.append(rpm)
 
         if index < 100:
-            logger.info(
+            logger.debug(
                 f"[{index:2}]val:{val:3} rpm:{rpm:10,.3f}. speed_steps_per_second:{speed_steps_per_second:10,.3f}"
             )
         index += 1

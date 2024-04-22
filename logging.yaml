@@ -11,7 +11,7 @@ formatters:
 handlers:
   console:
     class: logging.StreamHandler
-    level: INFO
+    level: DEBUG
     formatter: simple
     stream: ext://sys.stdout
   # file:
@@ -25,13 +25,19 @@ handlers:
 
 loggers:
   root:
-    level: INFO
-    handlers: console
+    level: WARNING
     # handlers: [console, file]
+    handlers: [console]
     propagate: no
 
   __main__:
-    level: DEBUG
+    level: INFO
 
   apnea.data:
-    level: DEBUG
+    level: INFO
+
+  apnea.demo:
+    level: INFO
+
+  motor:
+    level: INFO

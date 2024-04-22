@@ -43,7 +43,7 @@ class ApneaData:
 
     def load_csv(self):
         try:
-            logger.debug(f"csv_file:{self.csv_file}")
+            logger.info(f"csv_file:{self.csv_file}")
             try:
                 with open(self.csv_file, mode="r", encoding="utf-8") as file:
                     csv_reader = csv.reader(file)
@@ -88,10 +88,10 @@ class ApneaData:
                 pass
 
             # CSVファイルから読み込んだ内容を確認
-            logger.debug(f"制御間隔: {self._sampling_interval}")
-            logger.debug(f"マイクロステップ: {self._usteps_multiplier}")
-            logger.debug(f"初期待機位置: {self._initial_position}")
-            logger.debug(f"移動データ数: {len(self._movement_data_list)}")
+            logger.info(f"制御間隔: {self._sampling_interval}")
+            logger.info(f"マイクロステップ: {self._usteps_multiplier}")
+            logger.info(f"初期待機位置: {self._initial_position}")
+            logger.info(f"移動データ数: {len(self._movement_data_list)}")
 
             # for movement_data in self.movement_data:
             #   logger.debug(f"位置: {movement_data[0]} 移動量: {movement_data[1]}")
