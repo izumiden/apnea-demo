@@ -27,8 +27,6 @@ def _demo_stop():
     _g_demo_event.set()
 
 def _start_sw_pin_cbf(gpio, level, tick):
-    global _g_motorController
-    global _g_apneadata
     logger.info(f"start sw gpio:{gpio}, level:{level}, tick:{tick}")
     _demo_start()
 
@@ -49,7 +47,6 @@ def _limit_sw_pin_cbf(gpio, level, tick):
 def start():
     global _g_motorController
     global _g_apneadata
-    
 
     _g_apneadata = ApneaData(APNEA_DATA_CSV_PATH)
 
@@ -75,21 +72,40 @@ def start():
             logger.info(f"limit sw({limit_sw.pin}) level:{limit_sw.level}")
             try:
                 limit_sw.callback = _limit_sw_pin_cbf
+                _limit_sw_pin_cbf(limit_sw.pin, limit_sw.level, 0)
 
                 # リミットスイッチの状態を確認
                 if limit_sw.level == pigpio.LOW:
+                    logger.info(f"Motor position move. {_g_motorController.tmc5240.xactual}.")
                     # リミットスイッチが押されている場合、モーターを回転させてリミットスイッチを離す
                     _g_motorController.rotate()
-                    proctime = time.time() - 1
+                    t = time.time()
+                    time_proc = t + 1.0
+                    time_limit = t + MOTER_LIMIT_TIME_OF_DRIVE
                     while limit_sw.level == pigpio.LOW:
                         time.sleep(0.1)
                         t = time.time()
-                        if t - proctime >= 1:
-                            proctime = t
+                        if t > time_proc :
+                            time_proc = t
                             logger.info(f"Motor position move. {_g_motorController.tmc5240.xactual}.")
+                        if t > time_limit:
+                            logger.error("Limit switch not released.")
+                            break
+                        
                     # モーターを停止
                     time.sleep(MOTER_EXTRAQ_STOP_TIME)
                     _g_motorController.stop()
+                    time_proc = t + 1.0
+                    time_limit = t + MOTER_LIMIT_TIME_OF_DRIVE
+                    while _g_motorController.is_running():
+                        time.sleep(0.1)
+                        t = time.time()
+                        if t > time_proc :
+                            time_proc = t
+                            logger.info(f"Motor stop. {_g_motorController.tmc5240.xactual}.")
+                        if t > time_limit:
+                            logger.error("Motor not stopped.")
+                            break
 
                 # モーターの位置を基準点に移動
                 ApneaDemo.move_to_reference_point(_g_motorController)
