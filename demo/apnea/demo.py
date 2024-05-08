@@ -53,26 +53,7 @@ def moved_away_reference_point() -> None:
     _g_reference_point_event.clear()
 
 
-def _check_stop_event(wait:float=0.0) -> None:
-    if _g_stop_event.wait(wait):
-        raise StopEvent()
-
-
-def _stop_motor(motorController: MotorController) -> None:
-    # モーターを停止
-    motorController.stop()
-    while motorController.is_running():
-        _check_stop_event(0.1)
-            
-        logger.debug(
-            f"Motor controller is stopping."
-            f" xtarget:{motorController.tmc5240.xtarget:9},"
-            f" xactual:{motorController.tmc5240.xactual:9},"
-            f" vactual:{motorController.tmc5240.vactual:9}"
-        )
-
-
-def _move_to_reference_point(motorController: MotorController) -> None:
+def move_to_reference_point(motorController: MotorController) -> None:
     # モーターの位置を基準点に移動
     if not _g_reference_point_event.is_set():
         motorController.rotate_backwards()
@@ -95,6 +76,25 @@ def _move_to_reference_point(motorController: MotorController) -> None:
 
     # モーターの基準点を現在位置に設定
     motorController.set_reference_point()
+
+
+def _check_stop_event(wait:float=0.0) -> None:
+    if _g_stop_event.wait(wait):
+        raise StopEvent()
+
+
+def _stop_motor(motorController: MotorController) -> None:
+    # モーターを停止
+    motorController.stop()
+    while motorController.is_running():
+        _check_stop_event(0.1)
+            
+        logger.debug(
+            f"Motor controller is stopping."
+            f" xtarget:{motorController.tmc5240.xtarget:9},"
+            f" xactual:{motorController.tmc5240.xactual:9},"
+            f" vactual:{motorController.tmc5240.vactual:9}"
+        )
 
 
 def _run(motorController: MotorController, apneadata: ApneaData):
@@ -126,7 +126,18 @@ def _run(motorController: MotorController, apneadata: ApneaData):
         _stop_motor(motorController)
         
         # モーターの位置を基準点に移動
-        _move_to_reference_point(motorController)
+        move_to_reference_point(motorController)
+        
+        # モーターの位置をオフセット分移動
+        motorController.move_target(MOTER_INITIAL_OFFSET)
+        logger.info(f"Motor move to offset position {motorController.tmc5240.xactual} ...")
+        while motorController.is_running():
+            _check_stop_event(0.1)
+        logger.info(f"Motor moved offset position. {motorController.tmc5240.xactual}")
+        # モーターの基準点を現在位置に設定
+        motorController.set_reference_point()
+        # モーターを停止
+        _stop_motor(motorController)
         
         # モーターを初期位置に移動
         motorController.move_target(apneadata.initial_position)
@@ -177,7 +188,7 @@ def _run(motorController: MotorController, apneadata: ApneaData):
     finally:
         try:
             # モーターの位置を基準点に移動
-            _move_to_reference_point(motorController)
+            move_to_reference_point(motorController)
         except StopEvent:
             _g_stop_event.clear()
         # モータードライバーを停止

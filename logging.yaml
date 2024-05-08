@@ -39,5 +39,9 @@ loggers:
   apnea.demo:
     level: INFO
 
+  device:
+    level: INFO
+
   motor:
     level: INFO
+

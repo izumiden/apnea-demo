@@ -19,8 +19,9 @@ MOTER_D2 = 0                        # 加速度 (usteps/s²)
 # モーター制御設定
 #
 MOTER_LIMIT_TIME_OF_DRIVE = 10.0    # モーターの駆動時間の上限（秒）
-MOTER_DEFAULT_SPEED = 60.0          # モーターの通常速度（RPM）
-
+MOTER_DEFAULT_SPEED = 300.0        # モーターの通常速度（RPM）
+MOTER_EXTRAQ_STOP_TIME = 1.0        # モーター停止時の余分な時間（秒）
+MOTER_INITIAL_OFFSET = 100          # モーターの初期位置オフセット
 APNEA_DATA_CSV_PATH = "data.csv"    # 睡眠時無呼吸データのCSVファイルパス
 
 #

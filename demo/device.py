@@ -67,6 +67,8 @@ def start():
             )
         pi = pigpio.pi()
         try:
+            ########################################################
+            # リミットスイッチの設定
             limit_sw = Switch(
                 LIMIT_SW_PIN, pi, debounce_interval=0.2, edge=pigpio.EITHER_EDGE
             )
@@ -74,23 +76,26 @@ def start():
             try:
                 limit_sw.callback = _limit_sw_pin_cbf
 
-                if limit_sw.level == pigpio.HIGH:
-                    _g_motorController.rotate_backwards()
-                    while limit_sw.level == pigpio.HIGH:
+                # リミットスイッチの状態を確認
+                if limit_sw.level == pigpio.LOW:
+                    # リミットスイッチが押されている場合、モーターを回転させてリミットスイッチを離す
+                    _g_motorController.rotate()
+                    proctime = time.time() - 1
+                    while limit_sw.level == pigpio.LOW:
                         time.sleep(0.1)
-                        logger.info(f"Motor position reset. {_g_motorController.tmc5240.xactual}.")
-                else:
-                    ApneaDemo.reached_reference_point()
+                        t = time.time()
+                        if t - proctime >= 1:
+                            proctime = t
+                            logger.info(f"Motor position move. {_g_motorController.tmc5240.xactual}.")
+                    # モーターを停止
+                    time.sleep(MOTER_EXTRAQ_STOP_TIME)
+                    _g_motorController.stop()
 
-                _g_motorController.rotate_backwards(0)
-                while _g_motorController.is_running():
-                    time.sleep(0.1)
-                    logger.info(f"Motor stop. {_g_motorController.tmc5240.xactual}.")
+                # モーターの位置を基準点に移動
+                ApneaDemo.move_to_reference_point(_g_motorController)
 
-                # モーターの位置をリセット
-                _g_motorController.set_reference_point()
-                logger.info(f"Motor position reseted. {_g_motorController.tmc5240.xactual}.")
-
+                ########################################################
+                # スタートスイッチの設定
                 start_sw = Switch(
                     START_SW_PIN, pi, debounce_interval=0.2, edge=pigpio.RISING_EDGE
                 )
@@ -98,6 +103,8 @@ def start():
                 try:
                     start_sw.callback = _start_sw_pin_cbf
 
+                    ########################################################
+                    # ストップスイッチの設定
                     stop_sw = Switch(
                         STOP_SW_PIN, pi, debounce_interval=0.2, edge=pigpio.RISING_EDGE
                     )
@@ -105,6 +112,8 @@ def start():
                     try:
                         stop_sw.callback = _stop_sw_pin_cbf
 
+                        ########################################################
+                        # メインループ
                         while True:
                             _g_demo_event.wait()
                             _g_demo_event.clear()
