@@ -137,6 +137,22 @@ try:
         except ValueError :
             pass
 
+    val = os.getenv("MOTER_EXTRAQ_STOP_TIME")
+    if val is not None:
+        try :
+            val = float(val)
+            constant.MOTER_EXTRAQ_STOP_TIME = val
+        except ValueError :
+            pass
+
+    val = os.getenv("MOTER_INITIAL_OFFSET")
+    if val is not None:
+        try :
+            val = int(val)
+            constant.MOTER_INITIAL_OFFSET = val
+        except ValueError :
+            pass
+
     val = os.getenv("APNEA_DATA_CSV_PATH")
     if val is not None:
         constant.APNEA_DATA_CSV_PATH = val

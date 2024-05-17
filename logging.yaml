@@ -33,15 +33,15 @@ loggers:
   __main__:
     level: INFO
 
-  apnea.data:
-    level: INFO
+  # apnea.data:
+  #   level: INFO
 
-  apnea.demo:
-    level: INFO
+  # apnea.demo:
+  #   level: INFO
 
-  device:
-    level: INFO
+  # device:
+  #   level: INFO
 
-  motor:
-    level: INFO
+  # motor:
+  #   level: INFO
 

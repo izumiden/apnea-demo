@@ -54,6 +54,9 @@ def moved_away_reference_point() -> None:
 
 
 def move_to_reference_point(motorController: MotorController) -> None:
+
+    # モーターを停止
+    _stop_motor(motorController)
     # モーターの位置を基準点に移動
     if not _g_reference_point_event.is_set():
         motorController.rotate_backwards()
@@ -88,7 +91,7 @@ def _stop_motor(motorController: MotorController) -> None:
     motorController.stop()
     while motorController.is_running():
         _check_stop_event(0.1)
-            
+        
         logger.debug(
             f"Motor controller is stopping."
             f" xtarget:{motorController.tmc5240.xtarget:9},"

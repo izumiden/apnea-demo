@@ -59,9 +59,13 @@ class MotorController:
         self._poweron_flag = bool(self._tmc5240.toff != 0)
         self._tmc5240.disable()
 
-        self._tmc5240.ifs = ifs     # 電流値ifs (A)
-        self._tmc5240.amax = MOTER_AMAX if 0 < MOTER_AMAX else 0    # 最大加速度 (usteps/s²)
-        self._tmc5240.dmax = MOTER_DMAX if 0 < MOTER_DMAX else 0    # 最大減速度 (usteps/s²)
+        self._tmc5240.ifs = ifs  # 電流値ifs (A)
+        self._tmc5240.amax = (
+            MOTER_AMAX if 0 < MOTER_AMAX else 0
+        )  # 最大加速度 (usteps/s²)
+        self._tmc5240.dmax = (
+            MOTER_DMAX if 0 < MOTER_DMAX else 0
+        )  # 最大減速度 (usteps/s²)
 
         v = a = d = 0
         if 0 < MOTER_V1:
@@ -89,11 +93,11 @@ class MotorController:
             self._tmc5240.a1 = a
             self._tmc5240.d1 = d
 
-        self._tmc5240.vmax = 0      # 最大速度を0rpmに設定
+        self._tmc5240.vmax = 0  # 最大速度を0rpmに設定
         self._tmc5240.xtarget = 0
         self._tmc5240.xactual = 0
 
-        self._rampmode = TMC5240.RAMPMODE_VELOCITY_POSITIVE # 速度制御モード (正回転)
+        self._rampmode = TMC5240.RAMPMODE_VELOCITY_POSITIVE  # 速度制御モード (正回転)
         self._tmc5240.rampmode = self._rampmode
 
         if self._poweron_flag:
@@ -149,7 +153,7 @@ class MotorController:
         self._tmc5240.xtarget = target
         self._tmc5240.vmax_rpm = rpm
         return self
-    
+
     def rotate(self, rpm: float = MOTER_DEFAULT_SPEED):
         if not self.is_poweron():
             raise MotorNotEnabledError()
@@ -163,7 +167,7 @@ class MotorController:
         self.set_rampmode(TMC5240.RAMPMODE_HOLD)
         self._tmc5240.vmax_rpm = rpm
         self.set_rampmode(TMC5240.RAMPMODE_VELOCITY_NEGATIVE)
-        
+
     def stop(self):
         self._tmc5240.vmax = 0
 
@@ -188,11 +192,12 @@ def calculate_motor_rpm(
     """
     rpms = []  # RPMを格納するリスト
     index = 0
+    rpm_sum = 0
 
     logger.info(f"sample_interval_secondes:{sample_interval_secondes:.3f}.")
     logger.info(f"microstep_ratio:{microstep_ratio:.3f}.")
     logger.info(f"steps_per_rev:{steps_per_rev:.3f}.")
-    
+
     for movement in movements:
         val = 0
         if 1 < len(movement):
@@ -200,17 +205,23 @@ def calculate_motor_rpm(
         # ステップ/サンプル間隔（秒）
         speed_steps_per_sample_interval = val * microstep_ratio
         # ステップ/秒
-        speed_steps_per_second = speed_steps_per_sample_interval / sample_interval_secondes
-        
+        speed_steps_per_second = (
+            speed_steps_per_sample_interval / sample_interval_secondes
+        )
+
         rpm = (speed_steps_per_second * 60) / steps_per_rev
         rpm = round(rpm, 2)
         rpms.append(rpm)
+        rpm_sum += rpm
 
         if index < 100:
             logger.debug(
                 f"[{index:2}]val:{val:3} rpm:{rpm:10,.3f}. speed_steps_per_second:{speed_steps_per_second:10,.3f}"
             )
         index += 1
+
+    logger.info(f"len:{len(rpms)} sum:{rpm_sum}")
+
     return rpms
 
 
