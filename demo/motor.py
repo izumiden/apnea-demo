@@ -1,8 +1,6 @@
 from cgstep import TMC5240
 
 from logging import getLogger
-import time
-from threading import Thread
 
 from constant import *
 
@@ -89,9 +87,9 @@ class MotorController:
                 d = MOTER_D2
                 v = MOTER_V2
         if 0 < v:
-            self._tmc5240.v1 = v
-            self._tmc5240.a1 = a
-            self._tmc5240.d1 = d
+            self._tmc5240.v2 = v
+            self._tmc5240.a2 = a
+            self._tmc5240.d2 = d
 
         self._tmc5240.vmax = 0  # 最大速度を0rpmに設定
         self._tmc5240.xtarget = 0
